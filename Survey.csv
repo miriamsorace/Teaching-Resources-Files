@@ -1,0 +1,15 @@
+﻿Q1_orig,Q2_gold_standard,age_group,gender,education
+1,agree,18-25,F,UNIVERSITY
+2,disagree,26-35,M,SECONDARY
+2,strongly agree,18-25,F,UNIVERSITY
+3,strongly agree,18-25,M,SECONDARY
+4,agree,36-45,F,SECONDARY
+5,neither agree nor disagree,65+,F,PRIMARY
+6,disagree,46-55,F,SECONDARY
+7,strongly disagree,26-35,M,VOCATIONAL
+10,disagree,18-25,M,SECONDARY
+10,disagree,46-55,M,UNIVERSITY
+2,strongly agree,18-25,M,UNIVERSITY
+5,agree,26-35,M,SECONDARY
+6,neither agree nor disagree,36-45,F,VOCATIONAL
+8,disagree,65+,M,SECONDARY

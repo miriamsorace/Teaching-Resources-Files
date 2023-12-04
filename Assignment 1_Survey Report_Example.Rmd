@@ -1,0 +1,262 @@
+---
+title: "Untitled"
+author: "Miriam Sorace"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r initial_setup, include=FALSE}
+# include=FALSE means that this particular R code chunk will not be included in the final report. Useful for global settings or bits of code that might not be necessary to show in the final report (settings/set-up lines of code).
+if (!("knitr" %in% installed.packages())) {
+  install.packages('knitr', repos='http://cran.rstudio.org')}
+library(knitr)
+
+if (!("formatR" %in% installed.packages())) {
+  install.packages("formatR")}
+library(formatR)
+
+knitr::opts_chunk$set(echo = TRUE, error = FALSE, warning = FALSE, message = FALSE, fig.align = "center", tidy.opts=list(width.cutoff=70), tidy=TRUE) 
+#to avoid source code going out of bounds
+
+#this line is used to specify any global settings to be applied to the R Markdown script.   The example sets all code chunks as “echo=TRUE”, meaning they will be included in the final rendered version, whereas error/warning messages or any other messages from R will not be displayed in the final, 'knitted' R Markdown file.
+
+```
+
+```{r working_directory, include=FALSE}
+# Easy, manual option: go to Session --> Set Working Directory --> To Source File Location (this will mean that the computer folder where you have saved this RMarkdown file will be the working directory)
+
+# Otherwise: copy/paste your folder path in the parentheses of the function below, deleting ~/Downloads
+
+setwd("~/Downloads")
+
+#e.g.
+
+setwd("~/My Drive/Miriam Sorace_POLITICAL SCIENCE/7. MY TEACHING/Kent/MA5953/Class 6 Materials")
+```
+
+```{r packages&libraries}
+
+if (!("tidyverse" %in% installed.packages())) {
+  install.packages("tidyverse")}
+library(tidyverse)
+
+if (!("dplyr" %in% installed.packages())) {
+  install.packages("dplyr")}
+library(dplyr)
+
+if (!("janitor" %in% installed.packages())) {
+  install.packages("janitor")}
+library(janitor)
+
+if (!("ggplot2" %in% installed.packages())) {
+  install.packages("ggplot2")}
+library(ggplot2)
+
+
+if (!("scales" %in% installed.packages())) {
+  install.packages("scales")}
+library(scales)
+
+if (!("broom" %in% installed.packages())) {
+  install.packages("broom")}
+library(broom)
+
+if (!("knitr" %in% installed.packages())) {
+  install.packages("knitr")}
+library(stargazer)
+
+if (!("stargazer" %in% installed.packages())) {
+  install.packages("stargazer")}
+library(stargazer)
+
+```
+
+# Introduction
+
+(please re-word the below as much as possible to avoid being flagged for plagiarism!)
+
+For this report, I planned to measure [attitudes on XXXX / XXXX behaviour]. The topic is significant as [...]. I first ran a cognitive interview to pilot the original item wording: [original wording here]. I then fielded the following survey question [final survey question here] as part of a survey to XX people. The results are presented below.
+
+# Cognitive Interviewing
+
+Cognitive interviewing is [describe the method and its aims & the response process model]. I have recruited [X number] individuals to take part. [Describe sampling/ethics/consent]. Interview lasted [X amount of time] and were carried out [where/how]. [Say something about how transcripts have been produced and stored].
+
+## Cognitive Interviewing Results
+
+[Go through each text from your interviews' transcripts and try to systematize the answers into categories - follow the example I have uploaded in Class 3 Materials].
+
+### Comprehension 
+
+The main themes that emerged when participants were asked XXX were: 
+
+### Retrieval
+
+X respondents outlined that ...
+
+### Judgment
+
+X reported that ...
+
+### Reporting
+
+In terms of answer categories, participants reported that ...
+
+### Recommendations
+
+On the basis of the findings from the cognitive interview I decided to amend the survey item as follows:
+
+# Final Survey
+I fielded a questionnaire survey to XX participants. [Say something about ethics and consent]. The survey contained the following survey items:
+
+(a) [your original survey question]
+(b) [a theoretical correlate: already existing & well-validated survey question that could act as a sort of gold standard]
+(c) [2 or 3 demographic variables]
+
+```{r data_load}
+my_survey<-read.csv("Survey.csv")
+
+#data cleaning: variable recoding (preserving old variable - to check if recode went correctly)
+my_survey <- my_survey %>%
+  mutate(FEMALE = case_when(
+    gender == 'F' ~ 1,
+    gender == 'M' ~ 0
+  ))
+
+# data cleaning: variable renaming
+my_survey <- my_survey %>%
+  rename(AGE = age_group,
+         EDU = education,
+         Q1 = Q1_orig,
+         Q2 = Q2_gold_standard)
+#Something to note: when downloading from Google Forms the variable name is the entire survey item, which can get unwieldy. Just easier to rename directly on the excel file and then upload on to R. Or you can always change the variable names with the line of code provided below, but the excel workaround will usually save you time (unless it is a long survey you are working with).
+
+# transform all character variables to factor, and assign level order
+my_survey <- my_survey %>%
+  mutate(
+    AGE = factor(AGE, levels = c("18-25", "26-35", "36-45", "46-55", "65+")),
+    EDU = factor(EDU, levels = c("PRIMARY", "VOCATIONAL", "SECONDARY", "UNIVERSITY")),
+    Q2 = factor(Q2, levels = c("strongly disagree", "disagree", "neither agree nor disagree", "agree", "strongly agree"))
+  )
+
+
+#adding ID variable
+my_survey <- my_survey %>%
+  mutate(ID = row_number())
+
+
+# If item non-response present (I hope not, but it can occur!) you can do the below to assign NA to those
+my_survey[my_survey == "" | my_survey== " "] <- NA
+
+```
+
+The below offers key demographic backgrounds of my respondents, in terms of [your chosen demographic variables, e.g. age/gender/education ...]. 
+
+```{r demog_descriptives}
+# minimal ggplot bar graphs with numbers on bar 
+
+ggplot(my_survey, aes(x = AGE)) +
+  geom_bar(aes(y = stat(count/sum(count)), group = 1), fill = "skyblue", color = "black") +
+  geom_text(stat = "count", aes(label = scales::percent(stat(count/sum(count))), y = stat(count/sum(count))), vjust = -0.5) +
+  labs(title = "Age Distribution",
+       x = "Age",
+       y = "Percentage") +
+  theme_minimal()
+
+
+ggplot(my_survey, aes(x = EDU)) +
+  geom_bar(aes(y = stat(count/sum(count)), group = 1), fill = "lightgreen", color = "black") +
+  geom_text(stat = "count", aes(label = scales::percent(stat(count/sum(count))), y = stat(count/sum(count))), vjust = -0.5) +
+  labs(title = "Education Distribution",
+       x = "Education Level",
+       y = "Percentage") +
+  theme_minimal()
+
+
+ggplot(my_survey, aes(x = factor(FEMALE))) +
+  geom_bar(aes(y = stat(count/sum(count)), group = 1), fill = "gold", color = "black") +
+  geom_text(stat = "count", aes(label = scales::percent(stat(count/sum(count))), y = stat(count/sum(count))), vjust = -0.5) +
+  labs(title = "Gender Distribution",
+       x = " ",
+       y = "Percentage") +
+    scale_x_discrete(labels = c("0" = "Male", "1" = "Female")) +
+  theme_minimal()
+
+```
+
+As evidenced by the graph ... [I had more males/females in my dataset, more young/older cohorts ... etc - brief sentence on demographic patterns]
+
+```{r Q1_descriptives}
+
+ggplot(my_survey, aes(x = Q1)) +
+  geom_bar(aes(y = stat(count/sum(count)), group = 1), fill = "gray", color = "black") +
+  geom_text(stat = "count", aes(label = scales::percent(stat(count/sum(count))), y = stat(count/sum(count))), vjust = -0.5) +
+  scale_x_continuous(breaks = seq(1, 10, by = 1)) +
+  labs(title = "Distribution of [ORIGINAL SURVEY QUESTION NAME]",
+       x = "XXX",
+       y = "Percentage") +
+  theme_minimal()
+
+
+```
+
+Responses to my original survey question were ... [give a summary of patterns in answers to your original survey question]
+
+## Validating my Original Survey Question
+
+### Correlational Validity Analysis
+
+Correlational validity ... [introduce correlational validity and its aims briefly here].
+I will establish here if my original question [Q1 - e.g. Euroscepticism] is correlated with the gold standard/theoretical correlate [Q2: agreeing that EMU is a success]. If such a correlation exists and goes in the expected direction [positive/negative?], my original survey question is likely to be validly capturing the underlying construct of [e.g. Attitudes towards European integration].
+
+```{r}
+#Heat map: if both your original survey question and the theoretical correlate are unordered categorical variables
+# Create a heatmap
+ggplot(my_survey, aes(x = Q2, y = Q1)) +
+  geom_tile() +
+  labs(title = "Heatmap between XXX and XXX",
+       x = "XXX",
+       y = "XXX") +
+  theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+#Scatterplot (better for continuous/numerical variables)
+# transform your factor variable(s) to numerical
+levels(my_survey$Q2) #higher values indicate higher agreement
+my_survey<- my_survey %>%
+  mutate(Q2_num = as.numeric(Q2))
+
+#place theoretical predictor in x and new survey item in y
+
+ggplot(my_survey, aes(x=Q2_num, y=Q1)) + 
+  geom_point(color="black") +
+  geom_smooth(method=lm, linetype="dashed",
+             color="gray29") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Correlational Validity Plot",
+       x = "Theoretical Correlate [XXX]",
+       y = "[ORIGINAL SURVEY ITEM]")
+
+
+```
+
+If we look at the results we see [describe pattern of association: positive/negative relationship? How did you establish that?]
+
+For a formal evaluation of the relationship, we can use regression analysis. Regression analysis is a statistical technique that [... briefly summarise regression method/key aims]
+
+```{r, results='asis'}
+#remember: you need to add ,results='asis' for stargazer to output a table 
+#in your knitted Rmd
+
+model1<-lm(Q1 ~ Q2_num, data = my_survey)
+
+
+#getting a nicer-looking table
+
+stargazer(model1, header=T, type='html')
+
+```
+
+We find that the slope (beta) coefficient is [XXX] and [not statistically significant / statistically significant at the 0.001 level]. This means that the relationship is ...
+
+
